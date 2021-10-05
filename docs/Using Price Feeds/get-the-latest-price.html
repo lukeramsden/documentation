@@ -101,8 +101,7 @@ If you require a denomination other than what is provided, you can use two price
 > 
 > If you are using a Solidity version before 0.8.0 use [OpenZeppelin's SafeMath](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/math/SafeMath.sol) for division.
 
-
-```solidity
+```solidity USD Denominated Base
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.7;
 
@@ -148,6 +147,55 @@ contract DerivedPriceConsumerV3 {
             uint80 answeredInRoundEurUsd
         ) = priceFeedEurUsd.latestRoundData();
         return (priceBtcUsd * decimals) / priceEurUsd;
+    }
+ }
+```
+```solidity ETH Denominated Base
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.7;
+
+import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
+
+contract DerivedPriceConsumerV3 {
+
+    AggregatorV3Interface internal priceFeedDaiEth;
+    AggregatorV3Interface internal priceFeedEthUsd;
+    int public decimals;
+
+    /**
+     * Network: Kovan
+     * Aggregator: DAI/ETH
+     * Address: 0x22B58f1EbEDfCA50feF632bD73368b2FdA96D541
+     * Decimals: 18
+     * Aggregator: ETH/USD
+     * Address: 0x9326BFA02ADD2366b30bacB125260Af641031331
+     * Decimals: 8
+     */
+    constructor() {
+        priceFeedDaiEth = AggregatorV3Interface(0x22B58f1EbEDfCA50feF632bD73368b2FdA96D541);
+        priceFeedEthUsd = AggregatorV3Interface(0x9326BFA02ADD2366b30bacB125260Af641031331);
+        //decimals = 10**8;
+    }
+
+    /*
+     * Returns the derived price
+     */
+    function getDerivedPrice() public view returns (int) {
+        (
+            uint80 roundIDDaiEth, 
+            int priceDaiEth,
+            uint startedAtDaiEth,
+            uint timeStampDaiEth,
+            uint80 answeredInRoundDaiEth
+        ) = priceFeedDaiEth.latestRoundData();
+        (
+            uint80 roundIDEthUsd, 
+            int priceEthUsd,
+            uint startedAtEthUsd,
+            uint timeStampEthUsd,
+            uint80 answeredInRoundEthUsd
+        ) = priceFeedEthUsd.latestRoundData();
+        return priceDaiEth *  priceEthUsd;
     }
  }
 ```
